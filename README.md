@@ -1,2 +1,2 @@
-# video Frame Prediction
+# Video Frame Prediction
 Deep Learning algorithms for video future frame prediction
