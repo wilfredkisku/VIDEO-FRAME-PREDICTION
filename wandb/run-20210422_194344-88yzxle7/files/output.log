@@ -1,0 +1,1 @@
+  warnings.warn('`Model.fit_generator` is deprecated and '
