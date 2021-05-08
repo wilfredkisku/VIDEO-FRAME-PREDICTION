@@ -15,6 +15,7 @@ def convert(path):
     for l in list_categories:
         print(len(glob.glob(l+'/*')))
 
+
     return None
 def resizeImage(path):
 
