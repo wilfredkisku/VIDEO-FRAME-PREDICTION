@@ -10,13 +10,18 @@ dirs_video = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/dat
 dirs_images = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data/coastguard'
 
 def convert(path):
-    
     list_categories = sorted(glob.glob(path+'/*'))
+    
     for l in list_categories:
-        print(len(glob.glob(l+'/*')))
-
-
+        
+        movies = glob.glob(l+'/*')
+        
+        for lf in movies:
+            if not os.path.exists(lf[:-4]):
+                os.makedirs(lf[:-4])
+                extract(lf)
     return None
+
 def resizeImage(path):
 
     files = sorted(glob.glob(path+'/*'))
@@ -36,7 +41,7 @@ def extract(path):
     count = 0
 
     while success:
-        cv2.imwrite('frame%s.jpg'%str(count).zfill(5), image)
+        cv2.imwrite(path[:-4]+'/'+'frame%s.jpg'%str(count).zfill(5), image)
         success, image = video.read()
         print('Frame read : ',success)
         count += 1
