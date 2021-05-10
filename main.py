@@ -15,12 +15,22 @@ from matplotlib.pyplot import imshow, figure
 num_epochs = 100
 batch_size = 32
 
+#################################################################
 #gify dataset
 height = 96
 width = 96
 
 val_dir = '/home/wilfred/Datasets/catz/test'
 train_dir = '/home/wilfred/Datasets/catz/train'
+#################################################################
+#################################################################
+#UCF-101 dataset (augmented by traffic dataset)
+#height_ucf = 320
+#width_ucf = 480
+
+#val_dir_ucf = '/home/wilfred/Datasets/UCF-101'
+#train_dir_ucf = '/home/wilfred/Dataset/UCF-101'
+#################################################################
 
 steps_per_epoch = len(glob.glob(train_dir + "/*")) // batch_size
 validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
