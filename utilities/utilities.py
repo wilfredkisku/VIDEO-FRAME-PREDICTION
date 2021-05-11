@@ -15,14 +15,10 @@ from matplotlib.pyplot import imshow, figure
 height_ucf = 320
 width_ucf = 480
 
-train_dir_ucf = '/home/wilfred/Datasets/UCF-101/Traffic'
+train_dir_ucf = '/home/wilfred/Datasets/UCF-101-configuration'
 
-#steps_per_epoch = len(glob.glob(train_dir + "/*")) // batch_size
+steps_per_epoch = len(glob.glob(train_dir_ucf + "/*")) // batch_size
 #validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
-
-#dirs = '/home/wilfred/Datasets/UCF-101'
-#dirs_video = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data/coastguard_cif.mp4'
-#dirs_images = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data/coastguard'
 
 def my_generator(batch_size, img_dir):
 
@@ -53,11 +49,12 @@ def compileImagefiles(source,dest):
         files = sorted(glob.glob(s+'/*'))
         for i in range(len(files) - 6 + 1):
             images = files[i:i+6]
-            dest = dest+'/'+s.split('/')[-1]+'_'+images[0]
-            if not os.path.exists(dest):
-                os.mkdir(path)
-            shutil.move(images, dest+)
+            dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
 
+            if not os.path.exists(dest_):
+                os.mkdir(dest_)
+                for img in images:
+                    shutil.copy(img, dest_)
     return None
 
 def convert(path):
@@ -116,11 +113,12 @@ if __name__ == "__main__":
     #extract(dirs_video)
     #resizeImage(dirs_images)
     #convert(dirs)
-
-    my_generator(32, train_dir_ucf)
+    #my_generator(32, train_dir_ucf)
     #videos, next_frame = next(gen)
     #print(videos[0].shape)
     #print(next_frame[0].shape)
-
     #print(videos.shape)
 
+    #source = '/home/wilfred/Datasets/UCF-101/Traffic' 
+    #dest = '/home/wilfred/Datasets/UCF-101-configuration'
+    #compileImagefiles(source,dest)
