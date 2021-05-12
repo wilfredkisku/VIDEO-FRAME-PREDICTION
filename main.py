@@ -6,38 +6,44 @@ from keras.layers import ConvLSTM2D, BatchNormalization, TimeDistributed, Add
 from keras.models import Model
 from keras.models import Sequential
 from keras.callbacks import Callback
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Dense, Flatten, UpSampling2D
 from keras import backend as K
 
 import random
+import subprocess
 import glob
 from PIL import Image
 import numpy as np
 from matplotlib.pyplot import imshow, figure
 
-#################################################################
 #define the hyper-parameters
 num_epochs = 100
 batch_size = 32
-#################################################################
+
 #traffic dataset 4:3 image ratio
-height = 96
-width = 96
-#################################################################
+height = 192
+width = 256
+
 #steps per epoch and validation steps
 steps_per_epoch = len(glob.glob(train_dir + "/*")) // batch_size
 validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
-#################################################################
+
+#callback to log the images
+
+class ImageCallback(Callback):
+    def on_epoch_end(self, epoch, logs):
+        validation_X, validation_y = next(my_generator(15, val_dir))
+        output = self.model.predict(validation_X)
+        print("The average loss for epoch {} is ")
 
 def slice(x):
     return x[:,:,:,-1]
 
 def create_model():
     inp = Input((height, width, 5 * 3))
-    reshaped = Reshape((96,96,5,3))(inp)
+    reshaped = Reshape((height,width,5,3))(inp)
     permuted = Permute((1,2,4,3))(reshaped)
     noise = GaussianNoise(0.1)(permuted)
-    last_layer = Lambda(slice, input_shape=(96,96,3,5), output_shape=(96,96,3))(noise)
+    last_layer = Lambda(slice, input_shape=(height,width,3,5), output_shape=(height,width,3))(noise)
     x = Permute((4,1,2,3))(noise)
     x =(ConvLSTM2D(filters=c, kernel_size=(3,3),padding='same',name='conv_lstm1', return_sequences=True))(x)
 
@@ -67,6 +73,7 @@ def create_model():
     combined = concatenate([last_layer, x])
     combined = Conv2D(3, (1,1))(combined)
     model=Model(inputs=[inp], outputs=[combined])
+return model
 
 def save_model_checkpoints():
     #tf.keras.callbacks.ModelCheckpoint allows to save the model continually
@@ -106,13 +113,15 @@ def my_generator(batch_size, img_dir):
         yield (input_images, output_images)
         counter += batch_size
 
-gen = my_generator(52, train_dir)
-videos, next_frame = next(gen)
-print(videos[0].shape)
-print(next_frame[0].shape)
-print(videos.shape)
+if __name__ == '__main__':
 
-#model.fit(train_images, train_labels, epochs=10, validation_data = (test_images, test_labels), callbacks=[cp_callback])
-#Loads the weights from the checkpoint path from the file cp.ckpt
-#model.load_weights(checkpoint_path)
+    gen = my_generator(52, train_dir)
+    videos, next_frame = next(gen)
+    print(videos[0].shape)
+    print(next_frame[0].shape)
+    print(videos.shape)
+
+    #model.fit(train_images, train_labels, epochs=10, validation_data = (test_images, test_labels), callbacks=[cp_callback])
+    #Loads the weights from the checkpoint path from the file cp.ckpt
+    #model.load_weights(checkpoint_path)
 
