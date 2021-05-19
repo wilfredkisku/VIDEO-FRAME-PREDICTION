@@ -47,7 +47,7 @@ def compileImagefiles(source,dest):
     for s in dirs:
         files = sorted(glob.glob(s+'/*'))
         for i in range(len(files)//6):
-            images = files[i*6:i*6+6]
+            images = files[i:i+6]
             dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
 
             if not os.path.exists(dest_):
@@ -138,8 +138,8 @@ if __name__ == "__main__":
     #print(next_frame[0].shape)
     #print(videos.shape)
 
-    source = '/home/wilfred/Datasets/Motion/final' 
-    dest = '/home/wilfred/Datasets/Motion/final_processed'
-    compileImagefiles(source,dest)
+    #source = '/home/wilfred/Datasets/UCF-101/Traffic' 
+    #dest = '/home/wilfred/Datasets/UCF-101-configuration'
+    #compileImagefiles(source,dest)
 
-    #datasetCreator()
+    datasetCreator()
