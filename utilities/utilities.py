@@ -105,7 +105,21 @@ def process():
 
 
     return None
+def curate():
+    dir_ = "/home/wilfred/Datasets/Motion/Dana36/dana36/views"
+    views_lst = sorted(glob.glob(dir_+'/*')) 
 
+    for v in views_lst:
+        frames = sorted(glob.glob(v+'/frames/*'))
+        i = 0
+        frames_ = [int(os.path.splitext(frames[ii + 1])[0].split('/')[-1]) - int(os.path.splitext(frames[ii])[0].split('/')[-1]) for ii in range(len(frames) - 1)]
+        #while (i <= (len(frames) - 5)):
+            #int(os.path.splitext(frames[i])[0].split('/')[-1])
+            #i += 1
+        frames_.insert(0,1)
+        print(frames_)
+
+    
 def datasetCreator():
     dir_='/home/wilfred/Datasets/Motion/VIRAT'
     lst = glob.glob(dir_+'/*')
@@ -138,8 +152,10 @@ if __name__ == "__main__":
     #print(next_frame[0].shape)
     #print(videos.shape)
 
-    source = '/home/wilfred/Datasets/Motion/final' 
-    dest = '/home/wilfred/Datasets/Motion/final_processed'
-    compileImagefiles(source,dest)
-
+    #source = '/home/wilfred/Datasets/Motion/final' 
+    #dest = '/home/wilfred/Datasets/Motion/final_processed'
+    #compileImagefiles(source,dest)
+    
     #datasetCreator()
+
+    curate()
