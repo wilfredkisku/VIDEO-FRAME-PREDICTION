@@ -17,16 +17,21 @@ import numpy as np
 from matplotlib.pyplot import imshow, figure
 
 #define the hyper-parameters
-num_epochs = 100
+num_epochs = 1000
 batch_size = 32
 
 #traffic dataset 4:3 image ratio
 height = 192
 width = 256
 
+#train and validation directories
+train_dir = '/home/wilfred/Datasets/Motion/final_processed/train'
+val_dir = '/home/wilfred/Datasets/Motion/final_processed/test'
+checkpoint_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training/cp.ckpt'
+saved_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training'
 #steps per epoch and validation steps
-#steps_per_epoch = len(glob.glob(train_dir + "/*")) // batch_size
-#validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
+steps_per_epoch = len(glob.glob(train_dir + "/*")) // batch_size
+validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
 
 #callback to log the images
 #class ImageCallback(Callback):
@@ -97,24 +102,6 @@ def create_model():
     model=Model(inputs=[inp], outputs=[combined])
     return model
 
-def save_model_checkpoints():
-    #tf.keras.callbacks.ModelCheckpoint allows to save the model continually
-    #during and at the end of the training
-    checkpoint_path = 'training/cp.ckpt'
-    checkpoint_dir = os.path.dirname(checkpoint_path)
-
-    #create a callback that saves the model weights
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only = True, verbose=1)
-    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only = True, verbose=1, save_freq=5*batch_size)
-    return cp_callback
-
-def save_model_complete():
-    model.save('models/my_model.h5')
-    #model.save_weights('models/my_model_weights.h5')
-    #new_model = tf.keras.models.load_model('my_model.h5')
-
-    return None
-
 #the generator creates batches of images during training
 def my_generator(batch_size, img_dir):
     dirs = glob.glob(img_dir + '/*')
@@ -139,15 +126,19 @@ def my_generator(batch_size, img_dir):
 
 if __name__ == '__main__':
 
-    #gen = my_generator(52, train_dir)
-    #videos, next_frame = next(gen)
-    #print(videos[0].shape)
-    #print(next_frame[0].shape)
-    #print(videos.shape)
-
-    #model.fit(train_images, train_labels, epochs=10, validation_data = (test_images, test_labels), callbacks=[cp_callback])
-    #Loads the weights from the checkpoint path from the file cp.ckpt
-    #model.load_weights(checkpoint_path)
-
     model = create_model()
     model.summary()
+
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
+    model.compile(optimizer='adam', loss=ssim_loss, metrics=[perceptual_distance])
+
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
+
+    history = model.fit_generator(my_generator(batch_size,train_dir), steps_per_epochs=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
+
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv(saved_path+'/model-history.csv')
+    model.save(saved_path+'/model.h5')
+
+    
+    print('End of training...')
