@@ -1,10 +1,5 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import shutil
-from keras.models import Sequential
-from keras.callbacks import Callback
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Dense, Flatten, UpSampling2D
-from keras import backend as K
 import cv2
 import random
 import glob
@@ -12,35 +7,94 @@ from PIL import Image
 import numpy as np
 from matplotlib.pyplot import imshow, figure
 
-height_ucf = 320
-width_ucf = 480
+height = 480
+width = 640
 
-train_dir_ucf = '/home/wilfred/Datasets/UCF-101-configuration'
-#steps_per_epoch = len(glob.glob(train_dir_ucf + "/*")) // batch_size
-#validation_steps = len(glob.glob(val_dir + "/*")) // batch_size
+dirs_f1 = '/home/wilfred/Datasets/Motion/final_5/f1'
+dirs_f2 = '/home/wilfred/Datasets/Motion/final_5/f2'
+dirs_f3 = '/home/wilfred/Datasets/Motion/final_5/f3'
+dirs_f4 = '/home/wilfred/Datasets/Motion/final_5/f4'
+dest = '/home/wilfred/Datasets/Motion/final_processed_'
+num = 6
 
-def my_generator(batch_size, img_dir):
+def curate_f1():
+    
+    dirs = sorted(glob.glob(dirs_f1+'/*'))
+    for s in dirs:
+        files = sorted(glob.glob(s+'/frames/*'))
+        
+        for i in range(len(files)//num):
+            images = files[i*num:i*num+num]
+            dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
 
-    dirs = sorted(glob.glob(img_dir+'/*'))
-    #for s in dirs:
-        #print(len(glob.glob(s+'/*')))
-    counter = 0
-    while True:
-        input_images = np.zeros((batch_size, width, height, 3*5))
-        output_images = np.zeros((batch_size, width, height, 3))
-        #random.shuffle(dirs)
-        #if (counter+batch_size >= len(dirs)):
-            #counter = 0
-        #for i in range(batch_size):
-            #input_imgs = glob.glob(dirs[counter + i] + '/cat_[0-5]*')
-            #imgs = [Image.open(img) for img in sorted(input_imgs)]
-            #input_images[i] = np.concatenate(imgs, axis = 2)
-            #output_images[i] = np.array(Image.open(dirs[counter + i] + '/cat_result.jpg'))
-            #input_images[i] /= 255.
-            #output_images[i] /= 255.
+            if not os.path.exists(dest_):
+                os.mkdir(dest_)
+                for img in images:
+                    shutil.copy(img, dest_)
+    return None
 
-        #yield (input_images, output_images)
-        #counter += batch_size
+def curate_f2():
+
+    dirs = sorted(glob.glob(dirs_f2+'/*'))
+    for s in dirs:
+        files = sorted(glob.glob(s+'/frames/*'))
+
+        for i in range(len(files)//num):
+            images = files[i*num:i*num+num]
+            dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
+
+            if not os.path.exists(dest_):
+                os.mkdir(dest_)
+                for img in images:
+                    im = cv2.imread(img)
+                    im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
+                    #shutil.copy(img, dest_)
+    return None
+
+def curate_f3():
+
+    dirs = sorted(glob.glob(dirs_f3+'/*'))
+    for s in dirs:
+        files = sorted(glob.glob(s+'/frames/*'))
+
+        for i in range(len(files)//num):
+            images = files[i*num:i*num+num]
+            dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
+
+            if not os.path.exists(dest_):
+                os.mkdir(dest_)
+                for img in images:
+                    im = cv2.imread(img)
+                    w_c = im.shape[1]//2 
+                    h_c = im.shape[0]//2
+
+                    im = im[h_c-240:h_c+240,w_c-320:w_c+320]
+                    #im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
+    return None
+
+def curate_f4():
+
+    dirs = sorted(glob.glob(dirs_f4+'/*'))
+    for s in dirs:
+        files = sorted(glob.glob(s+'/frames/*'))
+
+        for i in range(len(files)//num):
+            images = files[i*num:i*num+num]
+            dest_ = dest+'/'+s.split('/')[-1]+'_'+images[0].split('/')[-1].split('.')[-2]
+
+            if not os.path.exists(dest_):
+                os.mkdir(dest_)
+                for img in images:
+                    im = cv2.imread(img)
+                    w_c = im.shape[1]//2
+                    h_c = im.shape[0]//2
+
+                    im = im[h_c-240:h_c+240,w_c-320:w_c+320]
+                    #im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
+    return None
 
 def compileImagefiles(source,dest):
     dirs = sorted(glob.glob(source+'/*'))
@@ -95,8 +149,7 @@ def extract(path):
 
     return None
 
-def process():
-    
+def process():    
     dirs_process = sorted(glob.glob(dirs+'/*'))
 
     for sub in dirs_process:
@@ -105,21 +158,7 @@ def process():
 
 
     return None
-def curate():
-    dir_ = "/home/wilfred/Datasets/Motion/Dana36/dana36/views"
-    views_lst = sorted(glob.glob(dir_+'/*')) 
 
-    for v in views_lst:
-        frames = sorted(glob.glob(v+'/frames/*'))
-        i = 0
-        frames_ = [int(os.path.splitext(frames[ii + 1])[0].split('/')[-1]) - int(os.path.splitext(frames[ii])[0].split('/')[-1]) for ii in range(len(frames) - 1)]
-        #while (i <= (len(frames) - 5)):
-            #int(os.path.splitext(frames[i])[0].split('/')[-1])
-            #i += 1
-        frames_.insert(0,1)
-        print(frames_)
-
-    
 def datasetCreator():
     dir_='/home/wilfred/Datasets/Motion/VIRAT'
     lst = glob.glob(dir_+'/*')
@@ -142,20 +181,7 @@ def datasetCreator():
 
 if __name__ == "__main__":
 
-    #process()
-    #extract(dirs_video)
-    #resizeImage(dirs_images)
-    #convert(dirs)
-    #my_generator(32, train_dir_ucf)
-    #videos, next_frame = next(gen)
-    #print(videos[0].shape)
-    #print(next_frame[0].shape)
-    #print(videos.shape)
-
-    #source = '/home/wilfred/Datasets/Motion/final' 
-    #dest = '/home/wilfred/Datasets/Motion/final_processed'
-    #compileImagefiles(source,dest)
-    
-    #datasetCreator()
-
-    curate()
+    curate_f1()
+    curate_f2()
+    curate_f3()
+    curate_f4()
