@@ -7,17 +7,6 @@ import tensorflow as tf
 import tensorflow.keras as kr
 from tensorflow.keras.datasets import mnist, fashion_mnist
 
-#MNIST dataset parameters 
-num_features = 784 #(image shape: 28 * 28)
-
-#training parameters
-batch_size = 128
-epoch = 50
-
-#network parameters
-hidden_1 = 128
-hidden_2 = 64
-
 def load_data(choice='mnist', labels=False):
     if choice not in ['mnist', 'fashion_mnist']:
         raise ('Choices are mnist and fashion_mnist')
@@ -28,9 +17,7 @@ def load_data(choice='mnist', labels=False):
         (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
     X_train, X_test = X_train/255., X_test/255.
-    print(X_train.shape)
-    X_train, X_test = X_train.reshape((-1, 784)), X_test.reshape((-1, 784))
-    print(X_train.shape)
+    #X_train, X_test = X_train.reshape((-1, 784)), X_test.reshape((-1, 784))
     X_train = X_train.astype(np.float32, copy=False)
     X_test = X_test.astype(np.float32, copy=False)
 
@@ -39,15 +26,43 @@ def load_data(choice='mnist', labels=False):
 
     return X_train, X_test
 
-def plot_predictions(y_true, y_pred):
+def model_simple():
+
+    encoding_dim = 32
+
+    inputs = tf.keras.layers.Input(shape=784,)
+    encoded = tf.keras.layers.Dense(encoding_dim, activation='relu')(inputs)
+    decoded = tf.keras.layers.Dense(784, activation='sigmoid')(encoded)
+    model = tf.keras.models.Model(inputs, decoded)
+    return model
+
+def model_conv():
     
-    f, ax = plt.subplots(2, 10, figsize=(15, 4))
-    
-    for i in range(10):
-        ax[0][i].imshow(np.reshape(y_true[i], (28,28)), aspect='auto')
-        ax[1][i].imshow(np.reshape(y_true[i], (28,28)), aspect='auto')
-    plt.tight_layout()
+    inputs = tf.keras.layers.Input(shape=(28, 28, 1))
+    x = tf.keras.layers.Conv2D(16, (3, 3), activation='relu', padding='same')(inputs)
+    x = tf.keras.layers.MaxPooling2D((2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+    x = tf.keras.layers.MaxPooling2D((2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+    encoded = tf.keras.layers.MaxPooling2D((2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
+    x = tf.keras.layers.UpSampling2D((2, 2))(x)
+    x = tf.keras.layers.Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+    x = tf.keras.layers.UpSampling2D((2, 2))(x)
+    x = tf.keras.layers.Conv2D(16, (3, 3), activation='relu')(x)
+    x = tf.keras.layers.UpSampling2D((2, 2))(x)
+    decoded = tf.keras.layers.Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
+
+    model = tf.keras.models.Model(inputs, decoded)
+    return model
 
 if __name__ == '__main__':
 
-    load_data()
+    train, test = load_data()
+    print(train.shape)
+    print(test.shape)
+    #autoencoder = model_simple()
+    autoencoder = model_conv()
+    autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+    autoencoder.fit(train, train, epochs=50, batch_size=128, shuffle=True, validation_data=(test, test))
+
