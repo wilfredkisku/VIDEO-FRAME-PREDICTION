@@ -23,8 +23,10 @@ num_epochs = 1000
 batch_size = 32
 
 #traffic dataset 3:4 image ratio
-height = 480
-width = 640
+#change the dimensions into 120 by 120
+
+height = 120
+width = 120
 
 #train and validation directories
 train_dir = '/home/wilfred/Datasets/Motion/final_processed/train'
@@ -154,17 +156,17 @@ if __name__ == "__main__":
     #model = create_test_model()
     model.summary()
 
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
+    #es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
     #model.compile(optimizer='adam', loss=ssim_loss, metrics=[perceptual_distance])
-    model.compile(optimizer='adam', loss=ssim_loss)
+    #model.compile(optimizer='adam', loss=ssim_loss)
 
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
+    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
 
-    history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
+    #history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
 
-    history_df = pd.DataFrame(history.history)
-    history_df.to_csv(saved_path+'/model-history.csv')
-    model.save(saved_path+'/model.h5')
+    #history_df = pd.DataFrame(history.history)
+    #history_df.to_csv(saved_path+'/model-history.csv')
+    #model.save(saved_path+'/model.h5')
 
     
     print('End of training...')

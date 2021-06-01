@@ -10,11 +10,11 @@ from matplotlib.pyplot import imshow, figure
 height = 480
 width = 640
 
-dirs_f1 = '/home/wilfred/Datasets/Motion/final_5/f1'
-dirs_f2 = '/home/wilfred/Datasets/Motion/final_5/f2'
-dirs_f3 = '/home/wilfred/Datasets/Motion/final_5/f3'
-dirs_f4 = '/home/wilfred/Datasets/Motion/final_5/f4'
-dest = '/home/wilfred/Datasets/Motion/final_processed_'
+dirs_f1 = '/home/wilfred/Datasets/Motion/final_4/f1'
+dirs_f2 = '/home/wilfred/Datasets/Motion/final_4/f2'
+dirs_f3 = '/home/wilfred/Datasets/Motion/final_4/f3'
+dirs_f4 = '/home/wilfred/Datasets/Motion/final_4/f4'
+dest = '/home/wilfred/Datasets/Motion/final_processed_120_120'
 num = 6
 
 def curate_f1():
@@ -30,7 +30,13 @@ def curate_f1():
             if not os.path.exists(dest_):
                 os.mkdir(dest_)
                 for img in images:
-                    shutil.copy(img, dest_)
+                    im = cv2.imread(img)
+                    w_c = im.shape[1]//2
+                    h_c = im.shape[0]//2
+                    im = im[:,w_c-h_c:w_c+h_c]
+                    im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
+                    cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
+                    #shutil.copy(img, dest_)
     return None
 
 def curate_f2():
@@ -47,7 +53,10 @@ def curate_f2():
                 os.mkdir(dest_)
                 for img in images:
                     im = cv2.imread(img)
-                    im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    w_c = im.shape[1]//2
+                    h_c = im.shape[0]//2
+                    im = im[:,w_c-h_c:w_c+h_c]
+                    im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
                     cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
                     #shutil.copy(img, dest_)
     return None
@@ -68,9 +77,8 @@ def curate_f3():
                     im = cv2.imread(img)
                     w_c = im.shape[1]//2 
                     h_c = im.shape[0]//2
-
-                    im = im[h_c-240:h_c+240,w_c-320:w_c+320]
-                    #im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    im = im[:,w_c-h_c:w_c+h_c]
+                    im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
                     cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
     return None
 
@@ -91,8 +99,8 @@ def curate_f4():
                     w_c = im.shape[1]//2
                     h_c = im.shape[0]//2
 
-                    im = im[h_c-240:h_c+240,w_c-320:w_c+320]
-                    #im = cv2.resize(im, (640,480), interpolation = cv2.INTER_AREA)
+                    im = im[:,w_c-h_c:w_c+h_c]
+                    im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
                     cv2.imwrite(dest_+'/'+img.split('/')[-1], im)
     return None
 
@@ -146,7 +154,6 @@ def extract(path):
         success, image = video.read()
         print('Frame read : ',success)
         count += 1
-
     return None
 
 def process():    
@@ -155,8 +162,6 @@ def process():
     for sub in dirs_process:
         lst = glob.glob(sub+'/*')
         print(len(lst))
-
-
     return None
 
 def datasetCreator():
@@ -176,12 +181,11 @@ def datasetCreator():
             success, image = video.read()
             #print('Frame read : ',success)
             count += 1
-        
     return None
 
 if __name__ == "__main__":
 
     curate_f1()
     curate_f2()
-    curate_f3()
+    #curate_f3()
     curate_f4()
