@@ -85,17 +85,17 @@ if __name__ == "__main__":
 
     model = model_ae()
     model.summary()
-    #es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
     #model.compile(optimizer='adam', loss=ssim_loss, metrics=[perceptual_distance])
-    #model.compile(optimizer='adam', loss=ssim_loss)
+    model.compile(optimizer='adam', loss=ssim_loss)
 
-    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
 
-    #history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
+    history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
 
-    #history_df = pd.DataFrame(history.history)
-    #history_df.to_csv(saved_path+'/model-history.csv')
-    #model.save(saved_path+'/model.h5')
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv(saved_path+'/model-history.csv')
+    model.save(saved_path+'/model.h5')
 
 
     print('End of training...')

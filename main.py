@@ -29,8 +29,8 @@ height = 120
 width = 120
 
 #train and validation directories
-train_dir = '/home/wilfred/Datasets/Motion/final_processed/train'
-val_dir = '/home/wilfred/Datasets/Motion/final_processed/test'
+train_dir = '/home/wilfred/Datasets/Motion/final_processed_120_120/train'
+val_dir = '/home/wilfred/Datasets/Motion/final_processed_120_120/test'
 checkpoint_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training/cp.ckpt'
 saved_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training'
 #steps per epoch and validation steps
@@ -63,6 +63,7 @@ def perceptual_distance(y_true, y_pred):
     b = y_true[:, :, :, 2] - y_pred[:, :, :, 2]
 
     return K.mean(K.sqrt((((512+rmean)*r*r)/256) + 4*g*g + (((767-rmean)*b*b)/256)))
+
 def create_test_model():
 
     model = Sequential()
@@ -105,27 +106,6 @@ def create_model():
     model=Model(inputs=[inp], outputs=[combined])
     return model
 
-#the generator creates batches of images during training for catz dataset
-def my_gene(batch_size, img_dir):
-    dirs = glob.glob(img_dir + '/*')
-    counter = 0
-    while True:
-        input_images = np.zeros((batch_size, width, height, 1*4))
-        output_images = np.zeros((batch_size, width, height, 1))
-        random.shuffle(dirs)
-        if (counter+batch_size >= len(dirs)):
-            counter = 0
-        for i in range(batch_size):
-            #change the logic for obtaining the images
-            input_imgs = glob.glob(dirs[counter + i] + '/cat_[0-5]*')
-            imgs = [Image.open(img) for img in sorted(input_imgs)]
-            input_images[i] = np.concatenate(imgs, axis = 2)
-            output_images[i] = np.array(Image.open(dirs[counter + i] + '/cat_result.jpg'))
-            input_images[i] /= 255.
-            output_images[i] /= 255.
-        yield (input_images, output_images)
-        counter += batch_size
-
 def my_generator(batch, img_dir):
     dirs = glob.glob(img_dir + '/*')
     counter = 0
@@ -148,7 +128,6 @@ def my_generator(batch, img_dir):
 
         yield(input_images, output_images)
         counter += batch
-        
 
 if __name__ == "__main__":
 
@@ -156,17 +135,17 @@ if __name__ == "__main__":
     #model = create_test_model()
     model.summary()
 
-    #es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
     #model.compile(optimizer='adam', loss=ssim_loss, metrics=[perceptual_distance])
-    #model.compile(optimizer='adam', loss=ssim_loss)
+    model.compile(optimizer='adam', loss=ssim_loss)
 
-    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
 
-    #history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
+    history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
 
-    #history_df = pd.DataFrame(history.history)
-    #history_df.to_csv(saved_path+'/model-history.csv')
-    #model.save(saved_path+'/model.h5')
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv(saved_path+'/model-history.csv')
+    model.save(saved_path+'/model.h5')
 
     
     print('End of training...')

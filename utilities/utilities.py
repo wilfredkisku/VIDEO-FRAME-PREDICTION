@@ -15,7 +15,7 @@ dirs_f2 = '/home/wilfred/Datasets/Motion/final_4/f2'
 dirs_f3 = '/home/wilfred/Datasets/Motion/final_4/f3'
 dirs_f4 = '/home/wilfred/Datasets/Motion/final_4/f4'
 dest = '/home/wilfred/Datasets/Motion/final_processed_120_120'
-num = 6
+num = 5
 
 def curate_f1():
     
@@ -185,7 +185,7 @@ def datasetCreator():
 
 if __name__ == "__main__":
 
-    curate_f1()
-    curate_f2()
-    #curate_f3()
-    curate_f4()
+    #curate_f1()
+    #curate_f2()
+    curate_f3()
+    #curate_f4()
