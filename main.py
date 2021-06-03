@@ -31,7 +31,7 @@ width = 120
 #train and validation directories
 train_dir = '/home/wilfred/Datasets/Motion/final_processed_120_120/train'
 val_dir = '/home/wilfred/Datasets/Motion/final_processed_120_120/test'
-checkpoint_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training/cp.ckpt'
+checkpoint_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training/lstm-3000/cp-lstm.ckpt'
 saved_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/training'
 #steps per epoch and validation steps
 steps_per_epoch = len(glob.glob(train_dir + "/*"))//batch_size
@@ -106,6 +106,10 @@ def create_model():
     model=Model(inputs=[inp], outputs=[combined])
     return model
 
+def adjust(image):
+    cv2.imread(image,0)
+    return image
+
 def my_generator(batch, img_dir):
     dirs = glob.glob(img_dir + '/*')
     counter = 0
@@ -129,23 +133,78 @@ def my_generator(batch, img_dir):
         yield(input_images, output_images)
         counter += batch
 
+def model_evaluate():
+    
+    model_new = create_model()
+    adam = tf.keras.optimizers.Adam(learning_rate=tf.Variable(0.001),beta_1=tf.Variable(0.9),beta_2=tf.Variable(0.999),epsilon=tf.Variable(1e-7),decay = tf.Variable(0.0),)
+    adam.iterations
+    model_new.compile(optimizer=adam, loss=ssim_loss)
+    model_new.load_weights(checkpoint_path)
+
+    predict_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data'
+    dirs = sorted([f for f in glob.glob(predict_path+'/*') if os.path.isdir(f)])
+
+    for d in dirs:
+        input_images = np.zeros((1, width, height, 1 * 4))
+        output_image = np.zeros((1, width, height, 1))
+        input_imgs = sorted(glob.glob(d + '/*'))
+        
+        imgs = []
+
+        for j in range(4):
+            im = cv2.imread(input_imgs[j],0)
+            if im.shape[0] % 2 == 1:
+                w_c = im.shape[1]
+                h_c = im.shape[0] - 1
+                im = im[:h_c,w_c-h_c:w_c]
+            else:
+                w_c = im.shape[1]
+                h_c = im.shape[0]
+                im = im[:,w_c-h_c:w_c]
+            im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
+            imgs.append(im.reshape(width, height, 1))
+        
+        input_images[0] = np.concatenate(imgs,axis=2)
+        input_images[0] /= 255.
+
+        output_image = model_new.predict(input_images)
+        arr = output_image[0]
+        new_arr = ((arr - arr.min()) * (1/(arr.max() - arr.min()) * 255)).astype('uint8')
+        cv2.imwrite(d+'/predicted.jpg',new_arr)
+    return None
+
+def test():
+    #model_new = create_model()
+    #model_new.compile(optimizer='adam', loss=ssim_loss)
+    #model_new.load_weights(checkpoint_path)
+    #print('model loaded ...')
+    
+    predict_path = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data'
+    
+    lst = sorted([f for f in glob.glob(predict_path+'/*') if os.path.isdir(f)])
+    
+    for l in lst:
+        print(glob.glob(l+'/*'))
+        
+    return None
+
 if __name__ == "__main__":
 
-    model = create_model()
+    #model = create_model()
     #model = create_test_model()
-    model.summary()
+    #model.summary()
 
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
+    #es_callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
     #model.compile(optimizer='adam', loss=ssim_loss, metrics=[perceptual_distance])
-    model.compile(optimizer='adam', loss=ssim_loss)
+    #model.compile(optimizer='adam', loss=ssim_loss)
 
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
+    #cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1)
 
-    history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
+    #history = model.fit(my_generator(batch_size,train_dir), steps_per_epoch=steps_per_epoch//4, validation_steps = validation_steps//4, epochs= num_epochs, validation_data = my_generator(batch_size, val_dir), callbacks=[es_callback, cp_callback], verbose = 1)
 
-    history_df = pd.DataFrame(history.history)
-    history_df.to_csv(saved_path+'/model-history.csv')
-    model.save(saved_path+'/model.h5')
+    #history_df = pd.DataFrame(history.history)
+    #history_df.to_csv(saved_path+'/model-history.csv')
+    #model.save(saved_path+'/model.h5')
 
-    
-    print('End of training...')
+    model_evaluate()
+    #print('End of training...')

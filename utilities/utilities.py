@@ -183,9 +183,54 @@ def datasetCreator():
             count += 1
     return None
 
+def test_create():
+
+    t_dirs = '/home/wilfred/Downloads/github/Python_Projects/videoPrediction/data'
+
+    lst = sorted([f for f in glob.glob(t_dirs+'/*') if os.path.isdir(f)])
+    
+    for i in range(len(lst)):
+        l = sorted(glob.glob(lst[i]+'/*'))
+        for j in l:
+            count = 0
+            im = cv2.imread(j,0)
+            if im.shape[0] % 2 == 1:
+                w_c = im.shape[1]
+                h_c = im.shape[0] - 1
+                im = im[:h_c,w_c-h_c:w_c]
+            else:
+                w_c = im.shape[1]
+                h_c = im.shape[0]
+                im = im[:,w_c-h_c:w_c]
+            im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
+            temp = j.split('/')[-1].split('.')[0]
+            cv2.imwrite(lst[i]+'/'+temp+'-'+str(count)+'.jpg',im)
+            count += 1
+        '''
+            im = cv2.imread(input_imgs[j],0)
+            if im.shape[0] % 2 == 1:
+                w_c = im.shape[1]
+                h_c = im.shape[0] - 1
+                im = im[:h_c,w_c-h_c:w_c]
+            else:
+                w_c = im.shape[1]
+                h_c = im.shape[0]
+                im = im[:,w_c-h_c:w_c]
+            im = cv2.resize(im, (120,120), interpolation = cv2.INTER_AREA)
+            imgs.append(im.reshape(width, height, 1))
+
+        input_images[0] = np.concatenate(imgs,axis=2)
+        input_images[0] /= 255.
+
+        output_image = model_new.predict(input_images)
+        arr = output_image[0]
+        new_arr = ((arr - arr.min()) * (1/(arr.max() - arr.min()) * 255)).astype('uint8')
+        cv2.imwrite(d+'/predicted.jpg',new_arr)
+        '''
 if __name__ == "__main__":
 
     #curate_f1()
     #curate_f2()
-    curate_f3()
+    #curate_f3()
     #curate_f4()
+    test_create()
